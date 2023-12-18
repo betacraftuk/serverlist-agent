@@ -23,5 +23,15 @@
 hs_err_pid*
 replay_pid*
 
+# Eclipse
+.settings
 .project
 .classpath
+
+# MacOS
+.DS_Store
+
+# Gradle
+build
+.gradle
+
