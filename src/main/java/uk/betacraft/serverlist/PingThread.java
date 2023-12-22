@@ -10,9 +10,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class PingThread extends Thread {
 
@@ -20,7 +19,7 @@ public class PingThread extends Thread {
 	public void run() {
 		HttpURLConnection con = null;
 		try {
-			URL url = new URL("https://api.betacraft.uk/v2/server_update");
+			URL url = new URL(BCPing.HOST + "/server_update");
 			int failsInARow = 0;
 			while (BCPing.running) {
 				try {
@@ -35,7 +34,7 @@ public class PingThread extends Thread {
 
 					List<String> online = AccessHelper.getOnlinePlayers();
 					
-					JSONObject jobj = (JSONObject) BCPing.parser.parse(BCPing.config.toJSONString());
+					JSONObject jobj = new JSONObject(BCPing.config.toString());
 
 					jobj.put("max_players", AccessHelper.getMaxPlayers());
 					jobj.put("online_players", online.size());
@@ -47,14 +46,14 @@ public class PingThread extends Thread {
 					
 					jobj.put("online_mode", AccessHelper.getOnlineMode());
 					
-					if ((boolean)jobj.get("send_players")) {
+					if (jobj.getBoolean("send_players")) {
 						
 						JSONArray jarr = new JSONArray();
 						for (String username : online) {
 							JSONObject pobj = new JSONObject();
 							
 							pobj.put("username", username);
-							jarr.add(pobj);
+							jarr.put(pobj);
 						}
 						
 						jobj.put("players", jarr);
@@ -76,7 +75,7 @@ public class PingThread extends Thread {
 					JSONObject response = readResponse(con.getInputStream());
 
 					if (response != null) {
-						if (!(boolean)response.getOrDefault("error", false)) {
+						if (!response.getBoolean("error")) {
 							if (failsInARow != 0) {
 								BCPing.log.info("[BetacraftPing] Server list ping was successful");
 								//BCPing.log.info("[BetaCraftPing] You can customize your server's appearance on the list by going to: 'https://api.betacraft.uk/edit_server.jsp?id=" + privatekey + "'");
@@ -86,7 +85,7 @@ public class PingThread extends Thread {
 							failsInARow++;
 							if (failsInARow <= 5) {
 								BCPing.log.info("[BetacraftPing] Failed to ping the server list");
-								BCPing.log.info("[BetacraftPing] Error: \"" + response.getOrDefault("error", "READER PANIC!") + "\"");
+								BCPing.log.info("[BetacraftPing] Error: \"" + response.getString("message") + "\"");
 							}
 						}
 					} else {
@@ -139,7 +138,7 @@ public class PingThread extends Thread {
 
 			//System.out.println(responString);
 
-			return (JSONObject) BCPing.parser.parse(responString);
+			return new JSONObject(responString);
 		} catch (Throwable t) {
 			BCPing.log.warning("Failed to read response: " + t.getMessage());
 			return null;

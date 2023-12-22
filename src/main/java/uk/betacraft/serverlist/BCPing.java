@@ -9,8 +9,7 @@ import java.nio.file.NoSuchFileException;
 import java.util.Base64;
 import java.util.logging.Logger;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import org.json.JSONObject;
 
 import legacyfix.LegacyURLStreamHandlerFactory;
 import uk.betacraft.serverlist.AccessHelper.ServerType;
@@ -18,11 +17,13 @@ import uk.betacraft.serverlist.AccessHelper.ServerType;
 public class BCPing {
 	public static final String BCPING_VER = "2.0.0";
 	public static Logger log;
-	public static final JSONParser parser = new JSONParser();
 	
 	PingThread thread;
 	public static JSONObject config;
 	public static boolean running = true;
+	
+	//protected static final String HOST = "http://localhost:2137";
+	protected static final String HOST = "https://api.betacraft.uk/v2";
 
 	public BCPing() {
 		URL.setURLStreamHandlerFactory(new LegacyURLStreamHandlerFactory());
@@ -49,7 +50,8 @@ public class BCPing {
 		}
 		if (pingdetails != null) {
 			try {
-				config = (JSONObject) parser.parse(pingdetails);
+				String json = new String(Files.readAllBytes(configfile.toPath()), "UTF-8");
+				config = new JSONObject(json);
 			} catch (Throwable t) {
 				log.warning("[BetacraftPing] Failed to read configuration! Disabling...");
 				t.printStackTrace();
@@ -70,7 +72,7 @@ public class BCPing {
 			config.put("send_players", true);
 			
 			try {
-				Files.write(configfile.toPath(), config.toJSONString().getBytes("UTF-8"));
+				Files.write(configfile.toPath(), config.toString().getBytes("UTF-8"));
 			} catch (Throwable t) {
 				log.warning("[BetacraftPing] Failed to write default configuration! Disabling...");
 				running = false;

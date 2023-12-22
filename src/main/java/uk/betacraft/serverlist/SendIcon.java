@@ -7,7 +7,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.stream.Collectors;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 public class SendIcon {
 
@@ -17,7 +17,7 @@ public class SendIcon {
 		
 		HttpURLConnection con = null;
 		try {
-			URL url = new URL("https://api.betacraft.uk/v2/server_update_icon");
+			URL url = new URL(BCPing.HOST + "/server_update_icon");
 			try {
 				con = (HttpURLConnection) url.openConnection();
 				con.setRequestMethod("POST");
@@ -29,11 +29,15 @@ public class SendIcon {
 				OutputStream os = con.getOutputStream();
 				
 				JSONObject jobj = new JSONObject();
-				jobj.put("connect_socket", BCPing.config.get("connect_socket"));
+				jobj.put("socket", BCPing.config.get("socket"));
 				if (icon == null) {
 					jobj.put("icon", "");
 				} else {
 					jobj.put("icon", icon);
+				}
+				
+				if (BCPing.config.has("private_key")) {
+					jobj.put("private_key", BCPing.config.getString("private_key"));
 				}
 				
 				String data = jobj.toString();
