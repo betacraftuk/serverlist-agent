@@ -15,7 +15,7 @@ import legacyfix.LegacyURLStreamHandlerFactory;
 import uk.betacraft.serverlist.AccessHelper.ServerType;
 
 public class BCPing {
-	public static final String BCPING_VER = "2.0.0";
+	public static final String BCPING_VER = "2.1.0";
 	public static Logger log;
 	
 	PingThread thread;
