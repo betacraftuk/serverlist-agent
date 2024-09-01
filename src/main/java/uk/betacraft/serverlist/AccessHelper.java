@@ -22,6 +22,8 @@ public class AccessHelper {
     private static Field maxPlayersField = null;
     private static Field usernameField = null;
 
+    public static Boolean onlineMode = null;
+
     public static void initCMMS(Object minecraftInstance) {
         type = ServerType.CMMS;
 
@@ -48,6 +50,10 @@ public class AccessHelper {
                         if (!"int".equals(prev[1].getType().getName())) {
                             onlineModeField = f;
                             onlineModeField.setAccessible(true);
+                            
+                            onlineMode = onlineModeField.getBoolean(minecraftInstance);
+                            
+                            onlineModeField.set(minecraftInstance, false);
                             break; // this variable is the last we're looking for
                         }
                     }
@@ -198,6 +204,10 @@ public class AccessHelper {
     }
 
     public static boolean getOnlineMode() {
+        // classic's 'verify-names'
+        if (onlineMode != null)
+            return onlineMode;
+
         // a1.0.5-a1.0.15 / c1.0-c1.2
         if (onlineModeField == null) {
             return false;

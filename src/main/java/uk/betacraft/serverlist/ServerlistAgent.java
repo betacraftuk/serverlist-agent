@@ -1,27 +1,34 @@
 package uk.betacraft.serverlist;
 
+import java.io.IOException;
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Optional;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.CtField;
+import javassist.CtMethod;
+import javassist.NotFoundException;
 import legacyfix.LegacyURLStreamHandlerFactory;
 import uk.betacraft.serverlist.AccessHelper.ServerType;
 
 public class ServerlistAgent {
+
+    static final ClassPool pool = ClassPool.getDefault();
+
+    static CtClass mcServerClass;
 
     public static void premain(String agentArgs, Instrumentation inst) {
         agentmain(agentArgs, inst);
     }
 
     public static void agentmain(String agentArgs, Instrumentation inst) {
-        ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        ClassReader reader = null;
 
         String advice = null;
         if (ClassLoader.getSystemResourceAsStream("net/minecraft/server/MinecraftServer.class") != null) {
@@ -59,56 +66,69 @@ public class ServerlistAgent {
         }
 
         try {
-            reader = new ClassReader(main.replace(".", "/"));
-            reader.accept(new MinecraftServerVisitor("<init>", writer), ClassReader.EXPAND_FRAMES);
-            byte[] cache = writer.toByteArray();
-            inst.redefineClasses(new ClassDefinition(Class.forName(main), cache));
-        } catch (Throwable e) {
-            e.printStackTrace();
+            mcServerClass = pool.get(main);
+
+            hookServerConstructor(inst);
+
+            injectMojangAuth(inst);
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
-        
+
         URL.setURLStreamHandlerFactory(new LegacyURLStreamHandlerFactory());
     }
 
-    public static class MinecraftServerVisitor extends ClassVisitor {
-        private String methodName;
+    public static void hookServerConstructor(Instrumentation inst) throws CannotCompileException, ClassNotFoundException, UnmodifiableClassException, IOException {
+        CtConstructor serverConstructor = mcServerClass.getConstructors()[0];
 
-        public MinecraftServerVisitor(String methodName, ClassVisitor cv) {
-            super(Opcodes.ASM4, cv);
-            this.cv = cv;
-            this.methodName = methodName;
-        }
+        serverConstructor.insertAfter(
+            (AccessHelper.type == ServerType.NMS) ?
+                "uk.betacraft.serverlist.AccessHelper.initNMS($0);"
+            :
+                "uk.betacraft.serverlist.AccessHelper.initCMMS($0);"
+        );
 
-        @Override
-        public MethodVisitor visitMethod(
-                int access, String name, String desc, String signature, String[] exceptions) {
-            if (name.equals(methodName)) {
-                return new MinecraftInitAdapter(Opcodes.ASM4, cv.visitMethod(access, name, desc, signature, exceptions), access, name, desc);
-            }
-            return cv.visitMethod(access, name, desc, signature, exceptions);
-        }
-
-        public static class MinecraftInitAdapter extends org.objectweb.asm.commons.AdviceAdapter {
-
-            protected MinecraftInitAdapter(int api, MethodVisitor methodVisitor, int access, String name,
-                    String descriptor) {
-                super(api, methodVisitor, access, name, descriptor);
-            }
-
-            @Override
-            protected void onMethodExit(final int opcode) {
-                if (opcode == RETURN) {
-                    mv.visitVarInsn(Opcodes.ALOAD, 0);
-                    mv.visitMethodInsn(
-                            Opcodes.INVOKESTATIC, 
-                            "uk/betacraft/serverlist/AccessHelper", 
-                            (AccessHelper.type == ServerType.NMS ? "initNMS" : "initCMMS"), 
-                            "(Ljava/lang/Object;)V", 
-                            false);
-                }
-            }
-        }
-
+        inst.redefineClasses(new ClassDefinition(Class.forName(mcServerClass.getName()), mcServerClass.toBytecode()));
     }
 
+    public static void injectMojangAuth(Instrumentation inst) throws NotFoundException, CannotCompileException, ClassNotFoundException, UnmodifiableClassException, IOException {
+        mcServerClass.defrost();
+
+        Optional<CtField> optPlayersArrayField = Arrays.asList(mcServerClass.getDeclaredFields()).stream()
+                .filter(x -> x.getSignature().startsWith("[L")).findFirst();
+
+        if (!optPlayersArrayField.isPresent()) {
+            System.out.println("No playersArrayField found");
+            return;
+        }
+
+        CtField playersArrayField = optPlayersArrayField.get();
+
+        CtClass playerInstanceClass = playersArrayField.getType().getComponentType();
+
+        Optional<CtMethod> optHandlePacketsMethod = Arrays.asList(playerInstanceClass.getDeclaredMethods()).stream().filter(x -> {
+            try {
+                return x.getReturnType() == CtClass.voidType && x.getParameterTypes().length == 2;
+            } catch (NotFoundException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }).findFirst();
+
+        if (!optHandlePacketsMethod.isPresent()) {
+            System.out.println("No handlePacketsMethod found");
+            return;
+        }
+
+        CtMethod handlePacketsMethod = optHandlePacketsMethod.get();
+
+        handlePacketsMethod.insertBefore(
+            "if ($1 == $1.b && !legacyfix.request.HasJoinedRequest.fire(((String)$2[1]).trim())) {" +
+            "    $0.a(\"Login wasn't authenticated with Mojang!\");" +
+            "    return;" +
+            "}"
+        );
+
+        inst.redefineClasses(new ClassDefinition(Class.forName(playerInstanceClass.getName()), playerInstanceClass.toBytecode()));
+    }
 }
