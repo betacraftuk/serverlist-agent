@@ -1,7 +1,5 @@
 package legacyfix.request;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.security.MessageDigest;
 
 import org.json.JSONException;
@@ -22,7 +20,7 @@ public class HasJoinedRequest extends Request {
 
     public static boolean fire(String user, String playerSocket) {
         try {
-            Response res = new HasJoinedRequest(user, sha1(playerSocket)).perform();
+            Response res = new HasJoinedRequest(user, sha1(playerSocket.substring(1))).perform();
 
             return res.code == 200;
         } catch (JSONException e) {

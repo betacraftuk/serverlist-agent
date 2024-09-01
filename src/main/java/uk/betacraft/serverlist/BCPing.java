@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 
 import org.json.JSONObject;
 
-import legacyfix.LegacyURLStreamHandlerFactory;
 import uk.betacraft.serverlist.AccessHelper.ServerType;
 
 public class BCPing {

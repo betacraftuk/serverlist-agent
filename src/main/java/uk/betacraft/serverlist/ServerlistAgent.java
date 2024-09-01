@@ -70,8 +70,14 @@ public class ServerlistAgent {
 
             hookServerConstructor(inst);
 
-            if (AccessHelper.type == ServerType.CMMS)
-                injectMojangAuth(inst);
+            if (AccessHelper.type == ServerType.CMMS) {
+                silenceHeartbeatSpam(inst);
+                injectMojangAuthClassic(inst);
+            }
+            
+            if ("true".equals(System.getProperty("mojangAuth", "false"))) {
+                injectMojangAuthEarlyAlpha(inst);
+            }
 
         } catch (Throwable t) {
             t.printStackTrace();
@@ -92,8 +98,150 @@ public class ServerlistAgent {
 
         inst.redefineClasses(new ClassDefinition(Class.forName(mcServerClass.getName()), mcServerClass.toBytecode()));
     }
+    
+    public static void silenceHeartbeatSpam(Instrumentation inst) throws NotFoundException, ClassNotFoundException, UnmodifiableClassException, IOException, CannotCompileException {
+        CtClass loggerClass = pool.get("java.util.logging.Logger");
+        
+        CtClass stringClass = pool.get("java.lang.String");
+        
+        CtMethod infoMethod = loggerClass.getDeclaredMethod("info", new CtClass[] {stringClass});
 
-    public static void injectMojangAuth(Instrumentation inst) throws NotFoundException, CannotCompileException, ClassNotFoundException, UnmodifiableClassException, IOException {
+        infoMethod.insertBefore(
+            "if (\"Sending heartbeat\".equals($1)) { return; }"
+        );
+
+        inst.redefineClasses(new ClassDefinition(Class.forName(loggerClass.getName()), loggerClass.toBytecode()));
+    }
+    
+    public static void injectMojangAuthEarlyAlpha(Instrumentation inst) throws NotFoundException, CannotCompileException, ClassNotFoundException, UnmodifiableClassException, IOException {
+        //mcServerClass.defrost();
+        
+        CtField SCMField = null;
+        for (CtField field : mcServerClass.getDeclaredFields()) {
+            if (field.getType().getName().equals("boolean"))
+                break;
+            
+            SCMField = field;
+        }
+        
+        CtClass SCMClass = SCMField.getType();
+        Optional<CtMethod> optSCMLoginMethod = Arrays.asList(SCMClass.getDeclaredMethods()).stream().filter(x -> {
+            try {
+                CtClass[] types = x.getParameterTypes();
+                return types.length == 3 && types[1].getName().equals("java.lang.String") && types[2].getName().equals("java.lang.String");
+            } catch (NotFoundException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }).findFirst();
+        
+        if (!optSCMLoginMethod.isPresent()) {
+            System.out.println("No SCMLoginMethod found");
+            return;
+        }
+        
+        CtMethod SCMLoginMethod = optSCMLoginMethod.get();
+        
+        CtClass netLoginHandlerClass = SCMLoginMethod.getParameterTypes()[0];
+        
+        Optional<CtMethod> optNLHKickMethod = Arrays.asList(netLoginHandlerClass.getDeclaredMethods()).stream().filter(x -> {
+            try {
+                CtClass[] types = x.getParameterTypes();
+                return types.length == 1 && types[0].getName().equals("java.lang.String");
+            } catch (NotFoundException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }).findFirst();
+        
+        if (!optNLHKickMethod.isPresent()) {
+            System.out.println("No NLHKickMethod found");
+            return;
+        }
+        
+        CtMethod NLHKickMethod = optNLHKickMethod.get();
+        
+        Optional<CtMethod> optNLHLoginMethod = Arrays.asList(netLoginHandlerClass.getDeclaredMethods()).stream().filter(x -> {
+            try {
+                CtClass[] types = x.getParameterTypes();
+                return types.length == 1 && !types[0].getName().equals("java.lang.String");
+            } catch (NotFoundException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }).findFirst();
+        
+        if (!optNLHLoginMethod.isPresent()) {
+            System.out.println("No NLHLoginMethod found");
+            return;
+        }
+        
+        CtMethod NLHLoginMethod = optNLHLoginMethod.get();
+        
+        CtClass packet1LoginClass = NLHLoginMethod.getParameterTypes()[0];
+
+        Optional<CtField> optUsernameField = Arrays.asList(packet1LoginClass.getDeclaredFields()).stream().filter(x -> {
+            try {
+                return x.getType().getName().equals("java.lang.String");
+            } catch (NotFoundException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }).findFirst();
+        
+        if (!optUsernameField.isPresent()) {
+            System.out.println("No usernameField found");
+            return;
+        }
+        
+        CtField usernameField = optUsernameField.get();
+        
+        // Now find NetworkManager
+        Optional<CtField> optNetworkManagerField = Arrays.asList(netLoginHandlerClass.getDeclaredFields()).stream().filter(x -> {
+            try {
+                return !x.getType().getName().startsWith("java.");
+            } catch (NotFoundException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }).findFirst();
+        
+        if (!optNetworkManagerField.isPresent()) {
+            System.out.println("No networkManagerField found");
+            return;
+        }
+        
+        CtField networkManagerField = optNetworkManagerField.get();
+        
+        CtClass networkManagerClass = networkManagerField.getType();
+        
+        Optional<CtMethod> optGetSocketAddressMethod = Arrays.asList(networkManagerClass.getDeclaredMethods()).stream().filter(x -> {
+            try {
+                return x.getReturnType().getName().equals("java.net.SocketAddress");
+            } catch (NotFoundException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }).findFirst();
+        
+        if (!optGetSocketAddressMethod.isPresent()) {
+            System.out.println("No getSocketAddressMethod found");
+            return;
+        }
+        
+        CtMethod getSocketAddressMethod = optGetSocketAddressMethod.get();
+
+        NLHLoginMethod.insertBefore(
+            "if (!legacyfix.request.HasJoinedRequest.fire($1." + usernameField.getName() + ", $0." + networkManagerField.getName() + "." + getSocketAddressMethod.getName() + "().toString().split(\":\")[0])) {" +
+            "    $0." + NLHKickMethod.getName() + "(\"Login wasn't authenticated with Mojang!\");" +
+            "    return null;" +
+            "}"
+        );
+        
+        inst.redefineClasses(new ClassDefinition(Class.forName(netLoginHandlerClass.getName()), netLoginHandlerClass.toBytecode()));
+    }
+
+    public static void injectMojangAuthClassic(Instrumentation inst) throws NotFoundException, CannotCompileException, ClassNotFoundException, UnmodifiableClassException, IOException {
         mcServerClass.defrost();
 
         Optional<CtField> optPlayersArrayField = Arrays.asList(mcServerClass.getDeclaredFields()).stream()
@@ -124,9 +272,24 @@ public class ServerlistAgent {
 
         CtMethod handlePacketsMethod = optHandlePacketsMethod.get();
 
+        // TODO auto detect?
+        String packetIdentificationField = "b";
+        String packetUsernameIndex = "1";
+        String networkManagerField = "a";
+        String ipField = "f";
+        String kickMethod = "a";
+
+        if (mcServerClass.getName().equals("p000com.mojang.minecraft.server.MinecraftServer")) {
+            packetIdentificationField = "IDENTIFICATION";
+            packetUsernameIndex = "0";
+            networkManagerField = "networkManager";
+            ipField = "username";
+            kickMethod = "mo97a";
+        }
+
         handlePacketsMethod.insertBefore(
-            "if ($1 == $1.b && !legacyfix.request.HasJoinedRequest.fire(((String)$2[1]).trim(), $0.a.f)) {" +
-            "    $0.a(\"Login wasn't authenticated with Mojang!\");" +
+            "if ($1 == $1." + packetIdentificationField + " && !legacyfix.request.HasJoinedRequest.fire(((String)$2[" + packetUsernameIndex + "]).trim(), $0." + networkManagerField + "." + ipField + ")) {" +
+            "    $0." + kickMethod + "(\"Login wasn't authenticated with Mojang!\");" +
             "    return;" +
             "}"
         );
