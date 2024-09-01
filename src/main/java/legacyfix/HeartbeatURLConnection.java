@@ -9,44 +9,44 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class HeartbeatURLConnection extends HttpURLConnection {
-	public HeartbeatURLConnection(URL url) {
-		super(url);
-	}
+    public HeartbeatURLConnection(URL url) {
+        super(url);
+    }
 
-	@Override
-	public void disconnect() {
+    @Override
+    public void disconnect() {
 
-	}
+    }
 
-	@Override
-	public boolean usingProxy() {
-		return false;
-	}
+    @Override
+    public boolean usingProxy() {
+        return false;
+    }
 
-	private String response = "Heartbeat/mppass functionality disabled successfully!";
+    private String response = "Heartbeat/mppass functionality disabled successfully!";
 
-	@Override
-	public void connect() throws IOException {
+    @Override
+    public void connect() throws IOException {
 
-	}
+    }
 
-	@Override
-	public InputStream getInputStream() throws IOException {
-		return new ByteArrayInputStream(response.getBytes());
-	}
-	
-	@Override
-	public OutputStream getOutputStream() {
-		return new ByteArrayOutputStream();
-	}
+    @Override
+    public InputStream getInputStream() throws IOException {
+        return new ByteArrayInputStream(response.getBytes());
+    }
 
-	@Override
-	public int getResponseCode() {
-		return 200;
-	}
+    @Override
+    public OutputStream getOutputStream() {
+        return new ByteArrayOutputStream();
+    }
 
-	@Override
-	public String getResponseMessage() {
-		return this.response;
-	}
+    @Override
+    public int getResponseCode() {
+        return 200;
+    }
+
+    @Override
+    public String getResponseMessage() {
+        return this.response;
+    }
 }

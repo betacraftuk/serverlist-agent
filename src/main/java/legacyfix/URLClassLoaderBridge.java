@@ -15,28 +15,28 @@ import java.util.ArrayList;
  *
  */
 public class URLClassLoaderBridge extends URLClassLoader {
-	private static ArrayList<URL> urls = new ArrayList<URL>();
+    private static ArrayList<URL> urls = new ArrayList<URL>();
 
-	static {
-		String cp = System.getProperty("java.class.path");
-		String[] cpSplit = cp.split(File.pathSeparator);
+    static {
+        String cp = System.getProperty("java.class.path");
+        String[] cpSplit = cp.split(File.pathSeparator);
 
-		for (String singlePath : cpSplit) {
-			try {
-				urls.add(new File(singlePath).toURI().toURL());
-			} catch (Throwable e) {
-				e.printStackTrace();
-			}
-		}
-	}
+        for (String singlePath : cpSplit) {
+            try {
+                urls.add(new File(singlePath).toURI().toURL());
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
-	public URLClassLoaderBridge(ClassLoader cloader) {
-		// parent = null
-		super(urls.toArray(new URL[urls.size()]), null);
-	}
+    public URLClassLoaderBridge(ClassLoader cloader) {
+        // parent = null
+        super(urls.toArray(new URL[urls.size()]), null);
+    }
 
-	// Allows for javaagent to be hooked
-	void appendToClassPathForInstrumentation(String path) throws MalformedURLException {
-		super.addURL(new File(path).toURI().toURL());
-	}
+    // Allows for javaagent to be hooked
+    void appendToClassPathForInstrumentation(String path) throws MalformedURLException {
+        super.addURL(new File(path).toURI().toURL());
+    }
 }

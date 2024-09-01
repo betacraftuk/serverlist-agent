@@ -15,87 +15,87 @@ import legacyfix.LegacyURLStreamHandlerFactory;
 import uk.betacraft.serverlist.AccessHelper.ServerType;
 
 public class BCPing {
-	public static final String BCPING_VER = "2.1.0";
-	public static Logger log;
-	
-	PingThread thread;
-	public static JSONObject config;
-	public static boolean running = true;
-	
-	protected static final String HOST = "http://localhost:2137/api/v2";
-	//protected static final String HOST = "https://api.betacraft.uk/v2";
+    public static final String BCPING_VER = "2.1.0";
+    public static Logger log;
 
-	public BCPing() {
-		URL.setURLStreamHandlerFactory(new LegacyURLStreamHandlerFactory());
-		
-		if (AccessHelper.type == ServerType.NMS) {
-			log = Logger.getLogger("Minecraft");
-		} else if (AccessHelper.type == ServerType.CMMS) {
-			log = Logger.getLogger("MinecraftServer");
-		} else {
-			log = Logger.getGlobal();
-		}
+    PingThread thread;
+    public static JSONObject config;
+    public static boolean running = true;
 
-		log.info("[BetacraftPing] BetacraftPing v" + BCPING_VER + " enabled.");
-		
-		File configfile = new File("betacraft/ping_details.json");
-		String pingdetails = null;
-		try {
-			pingdetails = new String(Files.readAllBytes(configfile.toPath()), "UTF-8");
-		} catch (Throwable t) {
-			if (!(t instanceof NoSuchFileException)) {
-				t.printStackTrace();
-			}
-			configfile.getParentFile().mkdirs();
-		}
-		if (pingdetails != null) {
-			try {
-				String json = new String(Files.readAllBytes(configfile.toPath()), "UTF-8");
-				config = new JSONObject(json);
-			} catch (Throwable t) {
-				log.warning("[BetacraftPing] Failed to read configuration! Disabling...");
-				t.printStackTrace();
-				running = false;
-				return;
-			}
-			// TODO validation?
-		} else {
-			config = new JSONObject();
+    protected static final String HOST = "http://localhost:2137/api/v2";
+    //protected static final String HOST = "https://api.betacraft.uk/v2";
 
-			String serverip = getIPFromAmazon();
-			config.put("socket", serverip + ":25565");
-			config.put("name", "A Minecraft server");
-			config.put("description", "");
-			config.put("category", "alpha");
-			config.put("protocol", "alpha_13");
-			config.put("game_version", "a1.0.15");
+    public BCPing() {
+        URL.setURLStreamHandlerFactory(new LegacyURLStreamHandlerFactory());
+
+        if (AccessHelper.type == ServerType.NMS) {
+            log = Logger.getLogger("Minecraft");
+        } else if (AccessHelper.type == ServerType.CMMS) {
+            log = Logger.getLogger("MinecraftServer");
+        } else {
+            log = Logger.getGlobal();
+        }
+
+        log.info("[BetacraftPing] BetacraftPing v" + BCPING_VER + " enabled.");
+
+        File configfile = new File("betacraft/ping_details.json");
+        String pingdetails = null;
+        try {
+            pingdetails = new String(Files.readAllBytes(configfile.toPath()), "UTF-8");
+        } catch (Throwable t) {
+            if (!(t instanceof NoSuchFileException)) {
+                t.printStackTrace();
+            }
+            configfile.getParentFile().mkdirs();
+        }
+        if (pingdetails != null) {
+            try {
+                String json = new String(Files.readAllBytes(configfile.toPath()), "UTF-8");
+                config = new JSONObject(json);
+            } catch (Throwable t) {
+                log.warning("[BetacraftPing] Failed to read configuration! Disabling...");
+                t.printStackTrace();
+                running = false;
+                return;
+            }
+            // TODO validation?
+        } else {
+            config = new JSONObject();
+
+            String serverip = getIPFromAmazon();
+            config.put("socket", serverip + ":25565");
+            config.put("name", "A Minecraft server");
+            config.put("description", "");
+            config.put("category", "alpha");
+            config.put("protocol", "alpha_13");
+            config.put("game_version", "a1.0.15");
             config.put("v1_version", "a1.0.15");
-			config.put("send_players", true);
+            config.put("send_players", true);
             config.put("private_key", "");
-			
-			try {
-				Files.write(configfile.toPath(), config.toString(4).getBytes("UTF-8"));
-			} catch (Throwable t) {
-				log.warning("[BetacraftPing] Failed to write default configuration! Disabling...");
-				running = false;
-				return;
-			}
-			
-			log.warning("[BetacraftPing] Failed to load configuration!");
-			log.warning("[BetacraftPing] Wrote default configuration --- see plugins/BetacraftPing/ping_details.json");
-		}
-		
-		thread = new PingThread();
-		thread.start();
-	}
-	
-	public void onDisable() {
-		log.info("[BetacraftPing] Disabling...");
-		running = false;
-		if (thread != null) thread.interrupt();
-	}
-	
-	public static String getIPFromAmazon() {
+
+            try {
+                Files.write(configfile.toPath(), config.toString(4).getBytes("UTF-8"));
+            } catch (Throwable t) {
+                log.warning("[BetacraftPing] Failed to write default configuration! Disabling...");
+                running = false;
+                return;
+            }
+
+            log.warning("[BetacraftPing] Failed to load configuration!");
+            log.warning("[BetacraftPing] Wrote default configuration --- see plugins/BetacraftPing/ping_details.json");
+        }
+
+        thread = new PingThread();
+        thread.start();
+    }
+
+    public void onDisable() {
+        log.info("[BetacraftPing] Disabling...");
+        running = false;
+        if (thread != null) thread.interrupt();
+    }
+
+    public static String getIPFromAmazon() {
         try {
             URL myIP = new URL("http://checkip.amazonaws.com");
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(myIP.openStream()));
@@ -107,32 +107,32 @@ public class BCPing {
         }
         return null;
     }
-	
-	private static String icon = null;
-	public static String getIcon() {
-		if (icon == null) {
-			File iconfile = new File("betacraft/server_icon.png");
-			if (!iconfile.exists()) {
-				BCPing.log.warning("[BetacraftPing] No server icon found at \"betacraft/server_icon.png\"!");
-				return icon;
-			}
-			
-			if (iconfile.length() > 64000) {
-				BCPing.log.severe("[BetacraftPing] Server icon size is too big! (64 kB max, recommended res: 128x128)");
-			} else {
-				try {
-					byte[] filebytes = Files.readAllBytes(iconfile.toPath());
-					byte[] b64str = Base64.getEncoder().encode(filebytes);
-					icon = new String(b64str, "UTF-8");
-					
-				} catch (Throwable t) {
-					BCPing.log.severe("[BetacraftPing] Failed to read server icon:");
-					t.printStackTrace();
-				}
-			}
-			return icon;
-		} else {
-			return icon;
-		}
-	}
+
+    private static String icon = null;
+    public static String getIcon() {
+        if (icon == null) {
+            File iconfile = new File("betacraft/server_icon.png");
+            if (!iconfile.exists()) {
+                BCPing.log.warning("[BetacraftPing] No server icon found at \"betacraft/server_icon.png\"!");
+                return icon;
+            }
+
+            if (iconfile.length() > 64000) {
+                BCPing.log.severe("[BetacraftPing] Server icon size is too big! (64 kB max, recommended res: 128x128)");
+            } else {
+                try {
+                    byte[] filebytes = Files.readAllBytes(iconfile.toPath());
+                    byte[] b64str = Base64.getEncoder().encode(filebytes);
+                    icon = new String(b64str, "UTF-8");
+
+                } catch (Throwable t) {
+                    BCPing.log.severe("[BetacraftPing] Failed to read server icon:");
+                    t.printStackTrace();
+                }
+            }
+            return icon;
+        } else {
+            return icon;
+        }
+    }
 }
