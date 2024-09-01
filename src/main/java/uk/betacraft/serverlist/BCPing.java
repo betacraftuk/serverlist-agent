@@ -26,7 +26,6 @@ public class BCPing {
     //protected static final String HOST = "https://api.betacraft.uk/v2";
 
     public BCPing() {
-        URL.setURLStreamHandlerFactory(new LegacyURLStreamHandlerFactory());
 
         if (AccessHelper.type == ServerType.NMS) {
             log = Logger.getLogger("Minecraft");

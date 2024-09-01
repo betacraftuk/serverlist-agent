@@ -2,6 +2,7 @@ package uk.betacraft.serverlist;
 
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
+import java.net.URL;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -9,6 +10,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import legacyfix.LegacyURLStreamHandlerFactory;
 import uk.betacraft.serverlist.AccessHelper.ServerType;
 
 public class ServerlistAgent {
@@ -64,6 +66,8 @@ public class ServerlistAgent {
         } catch (Throwable e) {
             e.printStackTrace();
         }
+        
+        URL.setURLStreamHandlerFactory(new LegacyURLStreamHandlerFactory());
     }
 
     public static class MinecraftServerVisitor extends ClassVisitor {
