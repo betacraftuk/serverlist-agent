@@ -20,20 +20,12 @@ public class HasJoinedRequest extends Request {
         return RequestUtil.performGETRequest(this);
     }
 
-    public static boolean fire(String user) {
-        InetAddress addr;
+    public static boolean fire(String user, String playerSocket) {
         try {
-            String socket = BCPing.config.getString("socket");
-            String host = socket.split(":")[0];
-            
-            addr = InetAddress.getByName(host);
-
-            String numericalHost = addr.getHostAddress();
-
-            Response res = new HasJoinedRequest(user, sha1(socket.replace(host, numericalHost))).perform();
+            Response res = new HasJoinedRequest(user, sha1(playerSocket)).perform();
 
             return res.code == 200;
-        } catch (UnknownHostException | JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
         return false;

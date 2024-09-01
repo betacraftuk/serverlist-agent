@@ -70,7 +70,9 @@ public class ServerlistAgent {
 
             hookServerConstructor(inst);
 
-            injectMojangAuth(inst);
+            if (AccessHelper.type == ServerType.CMMS)
+                injectMojangAuth(inst);
+
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -123,7 +125,7 @@ public class ServerlistAgent {
         CtMethod handlePacketsMethod = optHandlePacketsMethod.get();
 
         handlePacketsMethod.insertBefore(
-            "if ($1 == $1.b && !legacyfix.request.HasJoinedRequest.fire(((String)$2[1]).trim())) {" +
+            "if ($1 == $1.b && !legacyfix.request.HasJoinedRequest.fire(((String)$2[1]).trim(), $0.a.f)) {" +
             "    $0.a(\"Login wasn't authenticated with Mojang!\");" +
             "    return;" +
             "}"
