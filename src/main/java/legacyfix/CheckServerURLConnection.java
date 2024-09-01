@@ -41,7 +41,7 @@ public class CheckServerURLConnection extends HttpURLConnection {
 				serverId
 				).perform();
 
-		if (r.code != 204) {
+		if (r.code == 200) {
 			response = "YES";
 		}
 

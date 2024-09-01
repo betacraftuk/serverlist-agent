@@ -48,14 +48,19 @@ public class SendIcon {
 				os.flush();
 				os.close();
 
-				String privatekey = new BufferedReader(new InputStreamReader(con.getInputStream()))
-						   .lines().collect(Collectors.joining("\n"));
-				if (privatekey != null && privatekey.contains("Success")) {
-					BCPing.log.info("[BetacraftPing] Server icon updated successfully.");
-				} else {
-					BCPing.log.info("[BetacraftPing] Failed to update server icon");
-					BCPing.log.info("[BetacraftPing] Error: \"" + privatekey + "\"");
-				}
+				// process response
+                JSONObject response = PingThread.readResponse(con.getInputStream());
+
+                if (response != null) {
+                    if (!response.getBoolean("error")) {
+                        BCPing.log.info("[BetacraftPing] Server icon updated successfully.");
+                    } else {
+                        BCPing.log.info("[BetacraftPing] Failed to update server icon");
+                        BCPing.log.info("[BetacraftPing] Error: \"" + response.getString("message") + "\"");
+                    }
+                } else {
+                    BCPing.log.info("[BetacraftPing] Failed to read server icon update response (is null)");
+                }
 			} catch (Throwable t) {
 				BCPing.log.warning("[BetacraftPing] Failed to update server icon (" + t.getMessage() + ")");
 				String result = new BufferedReader(new InputStreamReader(con.getErrorStream()))

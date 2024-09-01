@@ -22,8 +22,8 @@ public class BCPing {
 	public static JSONObject config;
 	public static boolean running = true;
 	
-	//protected static final String HOST = "http://localhost:2137";
-	protected static final String HOST = "https://api.betacraft.uk/v2";
+	protected static final String HOST = "http://localhost:2137/api/v2";
+	//protected static final String HOST = "https://api.betacraft.uk/v2";
 
 	public BCPing() {
 		URL.setURLStreamHandlerFactory(new LegacyURLStreamHandlerFactory());
@@ -69,10 +69,12 @@ public class BCPing {
 			config.put("category", "alpha");
 			config.put("protocol", "alpha_13");
 			config.put("game_version", "a1.0.15");
+            config.put("v1_version", "a1.0.15");
 			config.put("send_players", true);
+            config.put("private_key", "");
 			
 			try {
-				Files.write(configfile.toPath(), config.toString().getBytes("UTF-8"));
+				Files.write(configfile.toPath(), config.toString(4).getBytes("UTF-8"));
 			} catch (Throwable t) {
 				log.warning("[BetacraftPing] Failed to write default configuration! Disabling...");
 				running = false;
@@ -82,8 +84,6 @@ public class BCPing {
 			log.warning("[BetacraftPing] Failed to load configuration!");
 			log.warning("[BetacraftPing] Wrote default configuration --- see plugins/BetacraftPing/ping_details.json");
 		}
-		
-		SendIcon.sendIcon();
 		
 		thread = new PingThread();
 		thread.start();

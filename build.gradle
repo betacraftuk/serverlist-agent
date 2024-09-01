@@ -68,5 +68,5 @@ configurations {
 
 dependencies {
 	compile fileTree(dir: 'lib', include: ['*.jar'])
-	extraLibs files('lib/asm-9.5.jar', 'lib/asm-commons-9.5.jar', 'lib/asm-tree-9.5.jar', 'lib/json-20231013.jar')
+	extraLibs files('lib/asm-9.5.jar', 'lib/asm-commons-9.5.jar', 'lib/asm-tree-9.5.jar', 'lib/json-20240303.jar')
 }

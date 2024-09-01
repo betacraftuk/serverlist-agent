@@ -20,7 +20,7 @@ public class PingThread extends Thread {
 		HttpURLConnection con = null;
 		try {
 			URL url = new URL(BCPing.HOST + "/server_update");
-			int failsInARow = 0;
+			int failsInARow = -1;
 			while (BCPing.running) {
 				try {
 					con = (HttpURLConnection) url.openConnection();
@@ -78,7 +78,8 @@ public class PingThread extends Thread {
 						if (!response.getBoolean("error")) {
 							if (failsInARow != 0) {
 								BCPing.log.info("[BetacraftPing] Server list ping was successful");
-								//BCPing.log.info("[BetaCraftPing] You can customize your server's appearance on the list by going to: 'https://api.betacraft.uk/edit_server.jsp?id=" + privatekey + "'");
+								
+								SendIcon.sendIcon();
 							}
 							failsInARow = 0;
 						} else {
