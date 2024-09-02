@@ -11,7 +11,8 @@ import java.util.logging.Logger;
 
 import org.json.JSONObject;
 
-import uk.betacraft.serverlist.AccessHelper.ServerType;
+import serverlist.AccessHelper;
+import serverlist.AccessHelper.ServerType;
 
 public class BCPing {
     public static final String BCPING_VER = "2.1.0";

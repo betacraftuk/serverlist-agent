@@ -1,9 +1,11 @@
-package uk.betacraft.serverlist;
+package serverlist;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
+
+import uk.betacraft.serverlist.BCPing;
 
 public class AccessHelper {
     public enum ServerType {
@@ -21,6 +23,7 @@ public class AccessHelper {
     private static Field onlinePlayersField = null;
     private static Field maxPlayersField = null;
     private static Field usernameField = null;
+    private static Field gameProfileField = null;
 
     public static Boolean onlineMode = null;
 
@@ -102,6 +105,12 @@ public class AccessHelper {
         try {
             Class s = minecraftServerInstance.getClass();
 
+            // 1.3+
+            Class sclass = s.getSuperclass();
+            if (sclass != null && !sclass.getCanonicalName().equals("java.lang.Object")) {
+                s = sclass;
+            }
+
             int boolcount = 0;
             Field[] prev = new Field[2];
             for (Field f: s.getDeclaredFields()) {
@@ -155,7 +164,7 @@ public class AccessHelper {
 
     private static String getUsername(Object playerobj) {
         try {
-            if (usernameField == null) {
+            if (usernameField == null && gameProfileField == null) {
                 Class playerclass = playerobj.getClass();
 
                 if (type == ServerType.NMS) {
@@ -169,6 +178,31 @@ public class AccessHelper {
                         break;
                     }
                 }
+            }
+            
+            if (usernameField == null && gameProfileField == null) {
+                // net.minecraft.util.com.mojang.authlib.GameProfile
+                Class humanClass = playerobj.getClass().getSuperclass();
+                
+                for (Field f : humanClass.getDeclaredFields()) {
+                    if (f.getType().getName().equals("com.mojang.authlib.GameProfile")) {
+                        f.setAccessible(true);
+                        gameProfileField = f;
+                        break;
+                    }
+                }
+                
+                for (Field f : gameProfileField.getType().getDeclaredFields()) {
+                    if (f.getType().getName().equals("java.lang.String")) {
+                        f.setAccessible(true);
+                        usernameField = f;
+                        break;
+                    }
+                }
+            }
+            
+            if (gameProfileField != null) {
+                return (String) usernameField.get(gameProfileField.get(playerobj));
             }
 
             return (String) usernameField.get(playerobj);

@@ -16,7 +16,8 @@ import javassist.CtField;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 import legacyfix.LegacyURLStreamHandlerFactory;
-import uk.betacraft.serverlist.AccessHelper.ServerType;
+import serverlist.AccessHelper;
+import serverlist.AccessHelper.ServerType;
 
 public class ServerlistAgent {
 
@@ -86,14 +87,14 @@ public class ServerlistAgent {
         URL.setURLStreamHandlerFactory(new LegacyURLStreamHandlerFactory());
     }
 
-    public static void hookServerConstructor(Instrumentation inst) throws CannotCompileException, ClassNotFoundException, UnmodifiableClassException, IOException {
+    public static void hookServerConstructor(Instrumentation inst) throws CannotCompileException, ClassNotFoundException, UnmodifiableClassException, IOException, NotFoundException {
         CtConstructor serverConstructor = mcServerClass.getConstructors()[0];
 
         serverConstructor.insertAfter(
             (AccessHelper.type == ServerType.NMS) ?
-                "uk.betacraft.serverlist.AccessHelper.initNMS($0);"
+                "serverlist.AccessHelper.initNMS($0);"
             :
-                "uk.betacraft.serverlist.AccessHelper.initCMMS($0);"
+                "serverlist.AccessHelper.initCMMS($0);"
         );
 
         inst.redefineClasses(new ClassDefinition(Class.forName(mcServerClass.getName()), mcServerClass.toBytecode()));
