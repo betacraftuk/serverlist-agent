@@ -21,8 +21,8 @@ jar {
 	}
 	manifest {
 		attributes(
-			'Premain-Class': 'uk.betacraft.serverlist.ServerlistAgent',
-			'Main-Class': 'legacyfix.ServerLauncher',
+			'Premain-Class': 'serverlist.ServerlistAgent',
+			'Main-Class': 'util.ServerLauncher',
 			'Can-Redefine-Classes': 'true',
 			'Can-Retransform-Classes': 'true'
 		)

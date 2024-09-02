@@ -5,8 +5,6 @@ import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
 
-import uk.betacraft.serverlist.BCPing;
-
 public class AccessHelper {
     public enum ServerType {
         NMS,
@@ -181,7 +179,7 @@ public class AccessHelper {
             }
             
             if (usernameField == null && gameProfileField == null) {
-                // net.minecraft.util.com.mojang.authlib.GameProfile
+                // 1.7.x+
                 Class humanClass = playerobj.getClass().getSuperclass();
                 
                 for (Field f : humanClass.getDeclaredFields()) {

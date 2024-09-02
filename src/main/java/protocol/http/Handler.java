@@ -1,4 +1,4 @@
-package legacyfix.protocol.http;
+package protocol.http;
 
 import java.io.IOException;
 import java.net.Proxy;
@@ -6,8 +6,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
-import legacyfix.CheckServerURLConnection;
-import legacyfix.HeartbeatURLConnection;
+import proxy.CheckServerURLConnection;
+import proxy.HeartbeatURLConnection;
 
 public class Handler extends URLStreamHandler {
 

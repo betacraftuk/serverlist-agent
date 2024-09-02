@@ -1,4 +1,4 @@
-package legacyfix;
+package util;
 
 public class Util {
     public static String OS = System.getProperty("os.name").toLowerCase();

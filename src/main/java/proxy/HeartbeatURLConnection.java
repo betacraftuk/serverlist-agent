@@ -1,16 +1,15 @@
-package legacyfix;
+package proxy;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import legacyfix.request.HasJoinedRequest;
-import legacyfix.request.Response;
-
-public class CheckServerURLConnection extends HttpURLConnection {
-    public CheckServerURLConnection(URL url) {
+public class HeartbeatURLConnection extends HttpURLConnection {
+    public HeartbeatURLConnection(URL url) {
         super(url);
     }
 
@@ -24,7 +23,7 @@ public class CheckServerURLConnection extends HttpURLConnection {
         return false;
     }
 
-    private String response = "NO";
+    private String response = "Heartbeat/mppass functionality disabled successfully!";
 
     @Override
     public void connect() throws IOException {
@@ -33,19 +32,12 @@ public class CheckServerURLConnection extends HttpURLConnection {
 
     @Override
     public InputStream getInputStream() throws IOException {
-        String serverId = this.url.toString().substring(this.url.toString().indexOf("&serverId=") + 10);
-        String username = this.url.toString().substring(this.url.toString().indexOf("?user=") + 6, this.url.toString().indexOf("&serverId="));
-
-        Response r = new HasJoinedRequest(
-                username,
-                serverId
-                ).perform();
-
-        if (r.code == 200) {
-            response = "YES";
-        }
-
         return new ByteArrayInputStream(response.getBytes());
+    }
+
+    @Override
+    public OutputStream getOutputStream() {
+        return new ByteArrayOutputStream();
     }
 
     @Override

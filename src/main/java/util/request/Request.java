@@ -1,4 +1,4 @@
-package legacyfix.request;
+package util.request;
 
 import java.util.HashMap;
 import java.util.Map;

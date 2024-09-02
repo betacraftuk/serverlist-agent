@@ -1,4 +1,4 @@
-package uk.betacraft.serverlist;
+package serverlist;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import serverlist.AccessHelper;
 
 public class PingThread extends Thread {
 

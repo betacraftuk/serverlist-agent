@@ -1,4 +1,4 @@
-package uk.betacraft.serverlist;
+package serverlist;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 
 import org.json.JSONObject;
 
-import serverlist.AccessHelper;
 import serverlist.AccessHelper.ServerType;
 
 public class BCPing {

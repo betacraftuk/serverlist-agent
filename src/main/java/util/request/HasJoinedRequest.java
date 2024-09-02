@@ -1,10 +1,10 @@
-package legacyfix.request;
+package util.request;
 
 import java.security.MessageDigest;
 
 import org.json.JSONException;
 
-import uk.betacraft.serverlist.BCPing;
+import serverlist.BCPing;
 
 public class HasJoinedRequest extends Request {
 

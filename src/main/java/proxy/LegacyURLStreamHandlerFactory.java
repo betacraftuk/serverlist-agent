@@ -1,9 +1,9 @@
-package legacyfix;
+package proxy;
 
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
 
-import legacyfix.protocol.http.Handler;
+import protocol.http.Handler;
 
 public class LegacyURLStreamHandlerFactory implements URLStreamHandlerFactory {
 

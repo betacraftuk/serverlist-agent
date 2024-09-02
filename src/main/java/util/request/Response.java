@@ -1,4 +1,4 @@
-package legacyfix.request;
+package util.request;
 
 public class Response {
     public int code = -1;

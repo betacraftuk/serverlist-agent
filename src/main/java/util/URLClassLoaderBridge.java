@@ -1,4 +1,4 @@
-package legacyfix;
+package util;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * To mimic Java 8's system classloader on Java 9+
  * (for ModLoader and other, heavy mods)
  * 
- * Usage: -Djava.system.class.loader=legacyfix.URLClassLoaderBridge
+ * Usage: -Djava.system.class.loader=util.URLClassLoaderBridge
  * Make sure to include LegacyFix (or that single class) in your path!!!
  *
  */

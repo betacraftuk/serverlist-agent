@@ -1,4 +1,4 @@
-package legacyfix.request;
+package util.request;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;

@@ -1,4 +1,4 @@
-package uk.betacraft.serverlist;
+package serverlist;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

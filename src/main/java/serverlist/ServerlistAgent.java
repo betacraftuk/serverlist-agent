@@ -1,4 +1,4 @@
-package uk.betacraft.serverlist;
+package serverlist;
 
 import java.io.IOException;
 import java.lang.instrument.ClassDefinition;
@@ -15,8 +15,7 @@ import javassist.CtConstructor;
 import javassist.CtField;
 import javassist.CtMethod;
 import javassist.NotFoundException;
-import legacyfix.LegacyURLStreamHandlerFactory;
-import serverlist.AccessHelper;
+import proxy.LegacyURLStreamHandlerFactory;
 import serverlist.AccessHelper.ServerType;
 
 public class ServerlistAgent {
