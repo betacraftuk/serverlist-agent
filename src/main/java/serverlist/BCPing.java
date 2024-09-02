@@ -14,15 +14,16 @@ import org.json.JSONObject;
 import serverlist.AccessHelper.ServerType;
 
 public class BCPing {
-    public static final String BCPING_VER = "2.1.0";
+    public static final String BCPING_VER = "2.1.1";
     public static Logger log;
 
-    PingThread thread;
+    PingThread pingThread;
+    UpdateThread updateThread;
     public static JSONObject config;
     public static boolean running = true;
 
-    protected static final String HOST = "http://localhost:2137/api/v2";
-    //protected static final String HOST = "https://api.betacraft.uk/v2";
+    //protected static final String HOST = "http://localhost:2137/api/v2";
+    protected static final String HOST = "https://api.betacraft.uk/v2";
 
     public BCPing() {
 
@@ -83,14 +84,21 @@ public class BCPing {
             log.warning("[BetacraftPing] Wrote default configuration --- see plugins/BetacraftPing/ping_details.json");
         }
 
-        thread = new PingThread();
-        thread.start();
+        pingThread = new PingThread();
+        pingThread.start();
+        
+        updateThread = new UpdateThread();
+        updateThread.start();
     }
 
     public void onDisable() {
         log.info("[BetacraftPing] Disabling...");
         running = false;
-        if (thread != null) thread.interrupt();
+        if (pingThread != null)
+            pingThread.interrupt();
+        
+        if (updateThread != null)
+            updateThread.interrupt();
     }
 
     public static String getIPFromAmazon() {

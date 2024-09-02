@@ -122,6 +122,25 @@ public class PingThread extends Thread {
             BCPing.log.warning("[BetacraftPing] The heartbeat was permanently interrupted (" + t.getMessage() + ")");
         }
     }
+    
+    public static String readStringResponse(InputStream is) {
+        try {
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+            int nRead;
+            byte[] readData = new byte[is.available()];
+
+            while ((nRead = is.read(readData, 0, readData.length)) != -1) {
+                buffer.write(readData, 0, nRead);
+            }
+
+            buffer.flush();
+            return new String(buffer.toByteArray());
+        } catch (Throwable t) {
+            BCPing.log.warning("Failed to read response: " + t.getMessage());
+            return null;
+        }
+    }
 
     public static JSONObject readResponse(InputStream is) {
         try {
