@@ -2,6 +2,7 @@ package serverlist;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -126,7 +127,8 @@ public class AccessHelper {
                                     onlinePlayersField = f1;
                                     onlinePlayersField.setAccessible(true);
                                     match = true;
-                                } else if (f1.getType().getName().equals("int")) {
+                                } else if (f1.getType().getName().equals("int") &&
+                                        !Modifier.isStatic(f1.getModifiers())) {
                                     maxPlayersField = f1;
                                     maxPlayersField.setAccessible(true);
                                     break;
@@ -138,6 +140,9 @@ public class AccessHelper {
                                 //System.out.println(serverConfigurationManagerField.getName() + ", " + serverConfigurationManagerField.getType().getName());
                                 serverConfigurationManagerField.setAccessible(true);
                                 break;
+                            } else {
+                                // 1.18+
+                                boolcount = -1;
                             }
                         }
                     }
