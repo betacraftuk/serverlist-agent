@@ -70,12 +70,15 @@ public class ServerlistAgent {
 
             hookServerConstructor(inst);
 
+            boolean mojangAuth = "true".equals(System.getProperty("mojangAuth", "false"));
+
             if (AccessHelper.type == ServerType.CMMS) {
+                if (mojangAuth) {
+                    injectMojangAuthClassic(inst);
+                }
+
                 silenceHeartbeatSpam(inst);
-                injectMojangAuthClassic(inst);
-            }
-            
-            if ("true".equals(System.getProperty("mojangAuth", "false"))) {
+            } else if (mojangAuth) {
                 injectMojangAuthEarlyAlpha(inst);
             }
 

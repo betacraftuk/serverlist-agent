@@ -10,6 +10,7 @@ import proxy.CheckServerURLConnection;
 import proxy.HeartbeatURLConnection;
 
 public class Handler extends URLStreamHandler {
+    static boolean disableHeartbeat = "true".equals(System.getProperty("disableHeartbeat", "true"));
 
     @Override
     protected URLConnection openConnection(URL url, Proxy p) throws IOException {
@@ -21,7 +22,7 @@ public class Handler extends URLStreamHandler {
         //System.out.println("Got: " + url.toString());
         if (url.toString().contains("/game/checkserver.jsp"))
             return new CheckServerURLConnection(url);
-        else if (url.toString().contains("/heartbeat.jsp"))
+        else if (url.toString().contains("/heartbeat.jsp") && disableHeartbeat)
             return new HeartbeatURLConnection(url);
         else {
             return new URL((URL)null, url.toString(), new sun.net.www.protocol.http.Handler()).openConnection();
