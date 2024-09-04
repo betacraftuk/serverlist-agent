@@ -16,7 +16,7 @@ public class UpdateThread extends Thread {
     public void run() {
         HttpURLConnection con = null;
         try {
-            URL url = new URL("https://api.github.com/repos/betacraftuk/serverlist-plugin/releases?per_page=1");
+            URL url = new URL("https://api.github.com/repos/betacraftuk/serverlist-agent/releases?per_page=1");
             while (BCPing.running) {
                 try {
                     con = (HttpURLConnection) url.openConnection();

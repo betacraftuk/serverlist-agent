@@ -106,12 +106,23 @@ public class PingThread extends Thread {
                         BCPing.log.warning("[BetacraftPing] Failed to ping server list. (" + t.getMessage() + ")");
                         BCPing.log.warning("[BetacraftPing] Perhaps ping_details.json is not configured properly?");
 
-
-                        String result = new BufferedReader(new InputStreamReader(con.getErrorStream()))
-                                .lines().collect(Collectors.joining("\n"));
-                        BCPing.log.info("[BetacraftPing] Error: \"" + result + "\"");
+                        try {
+                            String result = new BufferedReader(new InputStreamReader(con.getErrorStream()))
+                                    .lines().collect(Collectors.joining("\n"));
+                            BCPing.log.info("[BetacraftPing] Error: \"" + result + "\"");
+                        } catch (Throwable t2) {
+                            t2.printStackTrace();
+                        }
+                        
                     }
-                    Thread.sleep(60000);
+                    try {
+                        Thread.sleep(60000);
+                    } catch (Throwable t2) {
+                        if (!BCPing.running)
+                            return;
+
+                        t2.printStackTrace();
+                    }
                 }
 
             }
