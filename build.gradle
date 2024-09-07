@@ -8,14 +8,11 @@ sourceCompatibility = 8;
 
 repositories {
 	mavenCentral()
-	flatDir {
-		dirs 'lib'
-	}
 }
 
 jar {
 	from {
-		configurations.extraLibs.collect {
+		configurations.runtimeClasspath.collect {
 			it.isDirectory() ? it : zipTree(it)
 		}
 	}
@@ -29,11 +26,7 @@ jar {
 	}
 }
 
-configurations {
-	extraLibs
-}
-
 dependencies {
-	compile fileTree(dir: 'lib', include: ['*.jar'])
-	extraLibs files('lib/javassist-3.30.0.jar', 'lib/json-20240303.jar')
+	implementation group: 'org.javassist', name: 'javassist', version: '3.30.2-GA'
+	implementation group: 'org.json', name: 'json', version: '20240303'
 }
