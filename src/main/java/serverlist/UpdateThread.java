@@ -43,10 +43,14 @@ public class UpdateThread extends Thread {
                         if (con.getResponseCode() != 404) {
                             BCPing.log.warning("[BetacraftPing] Failed to get updates. (" + t.getMessage() + ")");
 
-                            String result = new BufferedReader(new InputStreamReader(con.getErrorStream()))
-                                    .lines().collect(Collectors.joining("\n"));
-                            BCPing.log.info("[BetacraftPing] Error: \"" + result + "\"");
+                            try {
+                                String result = new BufferedReader(new InputStreamReader(con.getErrorStream()))
+                                        .lines().collect(Collectors.joining("\n"));
 
+                                BCPing.log.info("[BetacraftPing] Error: \"" + result + "\"");
+                            } catch (Throwable t2) {
+                                t2.printStackTrace();
+                            }
                         }
 
                         update = false;
@@ -62,9 +66,14 @@ public class UpdateThread extends Thread {
 
                     BCPing.log.warning("[BetacraftPing] Failed to get updates. (" + t.getMessage() + ")");
 
-                    String result = new BufferedReader(new InputStreamReader(con.getErrorStream()))
-                            .lines().collect(Collectors.joining("\n"));
-                    BCPing.log.info("[BetacraftPing] Error: \"" + result + "\"");
+                    try {
+                        String result = new BufferedReader(new InputStreamReader(con.getErrorStream()))
+                                .lines().collect(Collectors.joining("\n"));
+
+                        BCPing.log.info("[BetacraftPing] Error: \"" + result + "\"");
+                    } catch (Throwable t2) {
+                        t2.printStackTrace();
+                    }
 
                     try {
                         Thread.sleep(1000 * 60 * 60 * 3); // 3 hours

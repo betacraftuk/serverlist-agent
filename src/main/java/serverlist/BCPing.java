@@ -37,20 +37,21 @@ public class BCPing {
 
         log.info("[BetacraftPing] BetacraftPing v" + BCPING_VER + " enabled.");
 
-        File configfile = new File("betacraft/ping_details.json");
-        String pingdetails = null;
+        File pingDetailsFile = new File("betacraft/ping_details.json");
+        String pingDetails = null;
         try {
-            pingdetails = new String(Files.readAllBytes(configfile.toPath()), "UTF-8");
+            pingDetails = new String(Files.readAllBytes(pingDetailsFile.toPath()), "UTF-8");
         } catch (Throwable t) {
             if (!(t instanceof NoSuchFileException)) {
                 t.printStackTrace();
             }
-            configfile.getParentFile().mkdirs();
+
+            pingDetailsFile.getParentFile().mkdirs();
         }
-        if (pingdetails != null) {
+
+        if (pingDetails != null) {
             try {
-                String json = new String(Files.readAllBytes(configfile.toPath()), "UTF-8");
-                config = new JSONObject(json);
+                config = new JSONObject(pingDetails);
             } catch (Throwable t) {
                 log.warning("[BetacraftPing] Failed to read configuration! Disabling...");
                 t.printStackTrace();
@@ -59,6 +60,7 @@ public class BCPing {
             }
             // TODO validation?
         } else {
+            // write defaults
             config = new JSONObject();
 
             String serverip = getIPFromAmazon();
@@ -73,7 +75,7 @@ public class BCPing {
             config.put("private_key", "");
 
             try {
-                Files.write(configfile.toPath(), config.toString(4).getBytes("UTF-8"));
+                Files.write(pingDetailsFile.toPath(), config.toString(4).getBytes("UTF-8"));
             } catch (Throwable t) {
                 log.warning("[BetacraftPing] Failed to write default configuration! Disabling...");
                 running = false;
@@ -89,24 +91,30 @@ public class BCPing {
         
         updateThread = new UpdateThread();
         updateThread.start();
-    }
-
-    public void onDisable() {
-        log.info("[BetacraftPing] Disabling...");
-        running = false;
-        if (pingThread != null)
-            pingThread.interrupt();
         
-        if (updateThread != null)
-            updateThread.interrupt();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                if (UpdateThread.update)
+                    log.info("[BetacraftPing] Download latest plugin update from " + UpdateThread.newestRelease.getString("html_url"));
+
+                log.info("[BetacraftPing] Disabling...");
+                running = false;
+
+                if (pingThread != null)
+                    pingThread.interrupt();
+                
+                if (updateThread != null)
+                    updateThread.interrupt();
+            }
+        });
     }
 
     public static String getIPFromAmazon() {
         try {
             URL myIP = new URL("http://checkip.amazonaws.com");
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(myIP.openStream()));
-            return bufferedReader.readLine();
 
+            return bufferedReader.readLine();
         } catch (Exception e) {
             log.warning("[BetacraftPing] Failed to get IP from Amazon! Are you offline?");
             e.printStackTrace();
@@ -117,20 +125,20 @@ public class BCPing {
     private static String icon = null;
     public static String getIcon() {
         if (icon == null) {
-            File iconfile = new File("betacraft/server_icon.png");
-            if (!iconfile.exists()) {
+            File iconFile = new File("betacraft/server_icon.png");
+            if (!iconFile.exists()) {
                 BCPing.log.warning("[BetacraftPing] No server icon found at \"betacraft/server_icon.png\"!");
                 return icon;
             }
 
-            if (iconfile.length() > 64000) {
+            if (iconFile.length() > 64000) {
                 BCPing.log.severe("[BetacraftPing] Server icon size is too big! (64 kB max, recommended res: 128x128)");
             } else {
                 try {
-                    byte[] filebytes = Files.readAllBytes(iconfile.toPath());
+                    byte[] filebytes = Files.readAllBytes(iconFile.toPath());
                     byte[] b64str = Base64.getEncoder().encode(filebytes);
-                    icon = new String(b64str, "UTF-8");
 
+                    icon = new String(b64str, "UTF-8");
                 } catch (Throwable t) {
                     BCPing.log.severe("[BetacraftPing] Failed to read server icon:");
                     t.printStackTrace();

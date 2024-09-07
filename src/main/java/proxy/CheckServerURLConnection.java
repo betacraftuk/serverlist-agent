@@ -39,7 +39,7 @@ public class CheckServerURLConnection extends HttpURLConnection {
         Response r = new HasJoinedRequest(
                 username,
                 serverId
-                ).perform();
+        ).perform();
 
         if (r.code == 200) {
             response = "YES";

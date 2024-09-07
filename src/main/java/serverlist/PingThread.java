@@ -21,6 +21,7 @@ public class PingThread extends Thread {
         try {
             URL url = new URL(BCPing.HOST + "/server_update");
             int failsInARow = -1;
+
             while (BCPing.running) {
                 try {
                     con = (HttpURLConnection) url.openConnection();
@@ -34,35 +35,34 @@ public class PingThread extends Thread {
 
                     List<String> online = AccessHelper.getOnlinePlayers();
 
-                    JSONObject jobj = new JSONObject(BCPing.config.toString());
+                    JSONObject payload = new JSONObject(BCPing.config.toString());
 
-                    jobj.put("max_players", AccessHelper.getMaxPlayers());
-                    jobj.put("online_players", online.size());
+                    payload.put("max_players", AccessHelper.getMaxPlayers());
+                    payload.put("online_players", online.size());
 
                     JSONObject software = new JSONObject();
                     software.put("name", "Vanilla Minecraft Server");
                     software.put("version", "unknown");
-                    jobj.put("software", software);
 
-                    jobj.put("online_mode", AccessHelper.getOnlineMode());
+                    payload.put("software", software);
+                    payload.put("online_mode", AccessHelper.getOnlineMode());
 
-                    if (jobj.getBoolean("send_players")) {
+                    if (payload.getBoolean("send_players")) {
+                        JSONArray playersArray = new JSONArray();
 
-                        JSONArray jarr = new JSONArray();
                         for (String username : online) {
-                            JSONObject pobj = new JSONObject();
+                            JSONObject playerObject = new JSONObject();
+                            playerObject.put("username", username);
 
-                            pobj.put("username", username);
-                            jarr.put(pobj);
+                            playersArray.put(playerObject);
                         }
 
-                        jobj.put("players", jarr);
+                        payload.put("players", playersArray);
                     } else {
-                        jobj.put("players", new JSONArray());
+                        payload.put("players", new JSONArray());
                     }
 
-
-                    String data = jobj.toString();
+                    String data = payload.toString();
                     //BCPing.log.info(data);
 
                     byte[] json = data.getBytes("UTF-8");
@@ -81,9 +81,11 @@ public class PingThread extends Thread {
 
                                 SendIcon.sendIcon();
                             }
+
                             failsInARow = 0;
                         } else {
                             failsInARow++;
+
                             if (failsInARow <= 5) {
                                 BCPing.log.info("[BetacraftPing] Failed to ping the server list");
                                 BCPing.log.info("[BetacraftPing] Error: \"" + response.getString("message") + "\"");
@@ -91,6 +93,7 @@ public class PingThread extends Thread {
                         }
                     } else {
                         failsInARow++;
+
                         if (failsInARow <= 5) {
                             BCPing.log.info("[BetacraftPing] Failed to read ping response (is null)");
                         }
@@ -101,7 +104,9 @@ public class PingThread extends Thread {
                     // Prevent fail messages at server shutdown
                     if (!BCPing.running)
                         return;
+
                     failsInARow++;
+
                     if (failsInARow <= 5) {
                         BCPing.log.warning("[BetacraftPing] Failed to ping server list. (" + t.getMessage() + ")");
                         BCPing.log.warning("[BetacraftPing] Perhaps ping_details.json is not configured properly?");
@@ -109,6 +114,7 @@ public class PingThread extends Thread {
                         try {
                             String result = new BufferedReader(new InputStreamReader(con.getErrorStream()))
                                     .lines().collect(Collectors.joining("\n"));
+
                             BCPing.log.info("[BetacraftPing] Error: \"" + result + "\"");
                         } catch (Throwable t2) {
                             t2.printStackTrace();
@@ -130,6 +136,7 @@ public class PingThread extends Thread {
             // Prevent fail messages at server shutdown
             if (!BCPing.running)
                 return;
+
             BCPing.log.warning("[BetacraftPing] The heartbeat was permanently interrupted (" + t.getMessage() + ")");
         }
     }
@@ -165,11 +172,9 @@ public class PingThread extends Thread {
             }
 
             buffer.flush();
-            String responString = new String(buffer.toByteArray());
+            String responseString = new String(buffer.toByteArray());
 
-            //System.out.println(responString);
-
-            return new JSONObject(responString);
+            return new JSONObject(responseString);
         } catch (Throwable t) {
             BCPing.log.warning("Failed to read response: " + t.getMessage());
             return null;

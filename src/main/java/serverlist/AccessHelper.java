@@ -87,7 +87,7 @@ public class AccessHelper {
         new BCPingThread().start();
     }
 
-    private static void initSCM() {
+    private static void loadSCM() {
         if (serverConfigurationManagerInstance == null) {
             try {
                 serverConfigurationManagerInstance = serverConfigurationManagerField.get(minecraftServerInstance);
@@ -105,6 +105,7 @@ public class AccessHelper {
             Class s = minecraftServerInstance.getClass();
 
             // 1.3+
+            // escape DedicatedMinecraftServer
             Class sclass = s.getSuperclass();
             if (sclass != null && !sclass.getCanonicalName().equals("java.lang.Object")) {
                 s = sclass;
@@ -112,20 +113,24 @@ public class AccessHelper {
 
             int boolcount = 0;
             Field[] prev = new Field[2];
+
             for (Field f: s.getDeclaredFields()) {
                 if (f.getType().getName().equalsIgnoreCase("boolean")) {
                     boolcount++;
+
                     if (boolcount == 1) {
                         // previous field was serverconfigman
 
                         for (int i = 0; i < 2; i++) {
                             boolean match = false;
                             Class scmc = prev[i].getType();
+
                             for (Field f1 : scmc.getDeclaredFields()) {
                                 //System.out.println(f1.getName() + ", " + f1.getType().getName());
                                 if (f1.getType().getName().equalsIgnoreCase("java.util.List")) {
                                     onlinePlayersField = f1;
                                     onlinePlayersField.setAccessible(true);
+
                                     match = true;
                                 } else if (f1.getType().getName().equals("int") &&
                                         !Modifier.isStatic(f1.getModifiers())) {
@@ -217,7 +222,7 @@ public class AccessHelper {
 
     public static List<String> getOnlinePlayers() {
         if (type == ServerType.NMS) {
-            initSCM();
+            loadSCM();
         }
 
         LinkedList<String> list = new LinkedList<String>();
@@ -260,7 +265,7 @@ public class AccessHelper {
 
     public static int getMaxPlayers() {
         if (type == ServerType.NMS) {
-            initSCM();
+            loadSCM();
         }
 
         try {
