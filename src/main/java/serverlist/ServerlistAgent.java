@@ -235,7 +235,7 @@ public class ServerlistAgent {
         CtMethod getSocketAddressMethod = optGetSocketAddressMethod.get();
 
         NLHLoginMethod.insertBefore(
-            "if (!legacyfix.request.HasJoinedRequest.fire($1." + usernameField.getName() + ", $0." + networkManagerField.getName() + "." + getSocketAddressMethod.getName() + "().toString().split(\":\")[0])) {" +
+            "if (!util.request.HasJoinedRequest.fire($1." + usernameField.getName() + ", $0." + networkManagerField.getName() + "." + getSocketAddressMethod.getName() + "().toString().split(\":\")[0])) {" +
             "    $0." + NLHKickMethod.getName() + "(\"Login wasn't authenticated with Mojang!\");" +
             "    return null;" +
             "}"
@@ -291,7 +291,7 @@ public class ServerlistAgent {
         }
 
         handlePacketsMethod.insertBefore(
-            "if ($1 == $1." + packetIdentificationField + " && !legacyfix.request.HasJoinedRequest.fire(((String)$2[" + packetUsernameIndex + "]).trim(), $0." + networkManagerField + "." + ipField + ")) {" +
+            "if ($1 == $1." + packetIdentificationField + " && !util.request.HasJoinedRequest.fire(((String)$2[" + packetUsernameIndex + "]).trim(), $0." + networkManagerField + "." + ipField + ")) {" +
             "    $0." + kickMethod + "(\"Login wasn't authenticated with Mojang!\");" +
             "    return;" +
             "}"

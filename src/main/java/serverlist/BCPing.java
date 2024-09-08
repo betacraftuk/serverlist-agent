@@ -14,7 +14,7 @@ import org.json.JSONObject;
 import serverlist.AccessHelper.ServerType;
 
 public class BCPing {
-    public static final String BCPING_VER = "2.1.1";
+    public static final String BCPING_VER = "2.1.2";
     public static Logger log;
 
     PingThread pingThread;
