@@ -121,9 +121,9 @@ public class AccessHelper {
                     if (boolcount == 1) {
                         // previous field was serverconfigman
 
+                        Field scmField = null;
                         for (int i = 0; i < 2; i++) {
-                            boolean match = false;
-                            Class scmc = prev[i].getType();
+                            Class<?> scmc = prev[i].getType();
 
                             for (Field f1 : scmc.getDeclaredFields()) {
                                 //System.out.println(f1.getName() + ", " + f1.getType().getName());
@@ -131,24 +131,23 @@ public class AccessHelper {
                                     onlinePlayersField = f1;
                                     onlinePlayersField.setAccessible(true);
 
-                                    match = true;
-                                } else if (f1.getType().getName().equals("int") &&
+                                    scmField = prev[i];
+                                } else if (scmField != null && f1.getType().getName().equals("int") &&
                                         !Modifier.isStatic(f1.getModifiers())) {
                                     maxPlayersField = f1;
                                     maxPlayersField.setAccessible(true);
                                     break;
                                 }
                             }
+                        }
 
-                            if (match) {
-                                serverConfigurationManagerField = prev[i];
-                                //System.out.println(serverConfigurationManagerField.getName() + ", " + serverConfigurationManagerField.getType().getName());
-                                serverConfigurationManagerField.setAccessible(true);
-                                break;
-                            } else {
-                                // 1.18+
-                                boolcount = -1;
-                            }
+                        if (scmField != null) {
+                            serverConfigurationManagerField = scmField;
+                            //System.out.println(serverConfigurationManagerField.getName() + ", " + serverConfigurationManagerField.getType().getName());
+                            serverConfigurationManagerField.setAccessible(true);
+                        } else {
+                            // 1.18+
+                            boolcount = -1;
                         }
                     }
                     if (boolcount == 3) {

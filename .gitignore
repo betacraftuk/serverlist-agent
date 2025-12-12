@@ -28,6 +28,9 @@ replay_pid*
 .project
 .classpath
 
+# IntelliJ IDEA
+.idea
+
 # MacOS
 .DS_Store
 
